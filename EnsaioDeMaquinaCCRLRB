@@ -1,0 +1,46 @@
+%%% DETERMINAÇÃO DOS PARÂMETROS DO CIRCUITO EQUIVALENTE
+%%% DO MIT A PARTIR DOS ENSAIOS DE ROTOR BLOQUEADO E LIVRE:
+% * Todos os valores informados são trifásicos e/ou de linha
+% ** Os parâmetros determinados referem-se ao valor por fase
+% *** Neste método Pav é modelada dentro de Rm
+format long;
+% 1) Coleta de dados gerais:
+    categoriaMIT = 'N'     % Categoria 'D', 'N' ou 'H'
+    % 1.1) Ensaio de corrente contínua
+        Rdc = mean([20.6/6.453, 20.7/6.491, 20.65/6.494]); % Rab Rbc e Rca
+    % 1.2) Ensaio de rotor bloqueado:
+        Vrb = mean( [42.92 44.54 44.05] );          % Vlinha média               
+        Irb = mean( [6.572 6.666 6.804] ) / sqrt(3);% Ilinha média p/ fase
+        Prb = 377 / 3;                              % Potência por fase
+    % 1.3) Ensaio de rotor livre:
+        Vrl = mean( [220.7	221.4	221.3] );           % Vlinha média                     
+        Irl = mean( [3.195	3.148	3.39] ) / sqrt(3);  % Ilinha méd p fase
+        Prl = 271 / 3;                                  % Potência por fase
+
+% 2) Determinação de outros parâmetros:
+    fprb = Prb/(Vrb*Irb);   % Fator de potência do ensaio de RB
+    fprl = Prl/(Vrl*Irl);   % Fator de potência do ensaio de RL
+    
+% 3) Determinações dos parâmetros com o ensaio de CC:
+    R1 = 1.05*(3/2)*Rdc;    % O MIT está em DD (Delta paralelo)
+    
+% 4) Determinações dos parâmetros com o ensaio de RB:
+    if categoriaMIT == 'H' razaoX1X2 = 0.43;
+    elseif categoriaMIT == 'N' razaoX1X2 = 1.67;
+    elseif categoriaMIT == 'D' razaoX1X2 = 1.00;
+    end
+    R2 = (Vrb/Irb)*fprb - R1;   % R2 = Rtot - R2
+    X2 = ( (Vrb/Irb)*sqrt(1-fprb^2) ) / (1+razaoX1X2) ; % X = Z*Sin(theta)/2
+    X1 = X2*razaoX1X2;
+    
+% 5) Determinações dos parâmetros com o ensaio de RL:
+    E0 = Vrl - (R1+j*X1)*Irl*exp(-j*acos(fprl));    % E0 ramo magnetiz.
+    Ym = Irl*exp(-j*acos(fprl)) / E0;       % Admitância do ramo magnetiz.
+    Rm = 1/real(Ym);
+    Xm = -1/imag(Ym);
+
+% 6) Mostra os valores calculados:
+    Z1 = R1+j*X1
+    Z2 = R2+j*X2
+    Rm
+    Xm
